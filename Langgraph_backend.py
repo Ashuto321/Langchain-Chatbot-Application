@@ -8,7 +8,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 load_dotenv()
 
-LLM = ChatGroq(model="openai/gpt-oss-120b", temperature=0.7)
+LLM = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.7)
 
 class chatbotstate(TypedDict):
     
