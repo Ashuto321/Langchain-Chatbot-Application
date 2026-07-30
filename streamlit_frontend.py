@@ -1,6 +1,6 @@
 import streamlit as st
 # lets import the chatbot object form the langgraph here
-from Langgraph_backend import chatbot
+from Langgraph_backend import chatbot, retrieve_all_threads
 from langchain_core.messages import HumanMessage
 # for automating the threadid
 import uuid
@@ -26,18 +26,17 @@ def add_thread(thread_id):
 # for getting the conversation 
 def load_conversation(thread_id):
     return chatbot.get_state(config={"configurable": {"thread_id": thread_id}}).values['messages']
-
 # ***************************************************SESSION MEMORY***********************************
 if 'message_history' not in st.session_state:
     st.session_state['message_history']=[]  # session state a dictionary  
 
 # adding thread_id in session
-if 'thread_id' not in st.session_state:
+if 'thread_id' not in st.session_state: # curren threads in the chatbot
     st.session_state['thread_id'] = generate_thread_id()
 
 # list to store the thread ids
-if 'chat_thread' not in st.session_state:
-    st.session_state['chat_thread'] = []
+if 'chat_thread' not in st.session_state: # all the threads in over time
+    st.session_state['chat_thread'] = retrieve_all_threads()
 
 # calling with thread id
 add_thread(st.session_state['thread_id'])
@@ -89,10 +88,9 @@ if user_input:
     
     # invkoing the chatbot object
     # response = chatbot.invoke({'messages': [HumanMessage(content=user_input)]}, config=config)
-    
     # ai_message = response['messages'][-1].content
     
-    # first append in history
+    # using the st.write_stream in streamlit
     with st.chat_message("assistant"):
         ai_message = st.write_stream(
             message_chunk.content for message_chunk, metadata in chatbot.stream(

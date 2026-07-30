@@ -4,7 +4,9 @@ from langchain_core.messages import BaseMessage, HumanMessage
 from langgraph.graph.message import add_messages
 from typing import Annotated, TypedDict
 from dotenv import load_dotenv
-from langgraph.checkpoint.memory import InMemorySaver
+# from langgraph.checkpoint.memory import InMemorySaver # for RAM based memeory
+import sqlite3
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 load_dotenv()
 
@@ -24,7 +26,17 @@ graph.add_node("chat_node", chat_node)
 graph.add_edge(START, "chat_node")
 graph.add_edge("chat_node", END)
 
-checkpointer = InMemorySaver()
+# checkpointer = InMemorySaver()
+# creating the sqlite db
+conn = sqlite3.connect(database='chatbot.db', check_same_thread=False)
+checkpointer = SqliteSaver(conn=conn)
 
 chatbot = graph.compile(checkpointer=checkpointer)
 
+# for retrieving the chat threads from the db
+def retrieve_all_threads():
+    all_thread = set() # for unique thread
+    for checkpoint in checkpointer.list(None):
+        all_thread.add(checkpoint.config["configurable"]["thread_id"])
+        
+    return list(all_thread)
