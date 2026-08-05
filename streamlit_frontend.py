@@ -8,7 +8,7 @@ import uuid
 # *************************************************utility_function***********************************
 # thread_id_generating_function
 def generate_thread_id():
-    thread_id = uuid.uuid4()
+    thread_id = str(uuid.uuid4())
     return thread_id
 
 # we will create a new chat with new threadid
@@ -25,7 +25,11 @@ def add_thread(thread_id):
         
 # for getting the conversation 
 def load_conversation(thread_id):
-    return chatbot.get_state(config={"configurable": {"thread_id": thread_id}}).values['messages']
+    state = chatbot.get_state(
+        config={"configurable": {"thread_id": thread_id}}
+    )
+
+    return state.values.get("messages", [])
 # ***************************************************SESSION MEMORY***********************************
 if 'message_history' not in st.session_state:
     st.session_state['message_history']=[]  # session state a dictionary  
@@ -84,7 +88,12 @@ if user_input:
         st.text(user_input)
         
     # configure:
-    config1 = {"configurable": {"thread_id": st.session_state['thread_id']}} 
+    # config1 = {"configurable": {"thread_id": st.session_state['thread_id']}}
+    
+    # for the langsmith we will add another type of config
+    config1 = {"configurable": {"thread_id": st.session_state['thread_id']},
+               "meta_data": {"thread_id": st.session_state['thread_id']},
+               "run_name": "chatbot_run"} 
     
     # invkoing the chatbot object
     # response = chatbot.invoke({'messages': [HumanMessage(content=user_input)]}, config=config)
